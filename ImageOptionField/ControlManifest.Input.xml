@@ -1,13 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest>
-  <control namespace="CarlPayne.PCFControls" constructor="ImageOptionField" version="0.0.2" display-name-key="ImageOptionField" description-key="ImageOptionField replaces an OptionSet field and displays images based off of the selected formatted value. This control looks for WebResources with names built from the formatted value of the OptionSet and the both a Path and a File Type." control-type="standard">
+  <control namespace="CarlPayne.PCFControls" constructor="ImageOptionField" version="0.0.16" display-name-key="ImageOptionField" description-key="ImageOptionField replaces an OptionSet field and displays images based off of the selected formatted value. This control looks for WebResources with names built from the formatted value of the OptionSet and the both a Path and a File Type." control-type="standard">
     <!-- property node identifies a specific, configurable piece of data that the control expects from CDS -->
     <property name="fieldValue" display-name-key="Field" description-key="This is the field to be replaced with this control and the OptionSet values used to generate images names." of-type-group="optionset" usage="bound" required="true" />
     <property name="filePath" display-name-key="File Path" description-key="This is the File Path for the WebResource in CRM/CDS not including the File Name or File Type. The Organization path is automatically retrieved by the control. (ex: 'cmp_/TestGlobalOptionSet/Images/')" of-type="SingleLine.Text" usage="input" required="true" />
     <property name="fileType" display-name-key="File Type" description-key="This is the File Type without a '.' for the collection of images for the OptionSet. Supported Values: 'png' 'jpg' 'jpeg' 'gif'. All files must share a File Type and this control defaults to 'png' when either no value or an invalid value is given." of-type="SingleLine.Text" usage="input" required="true" />
     <property name="spaceReplace" display-name-key="Replace Spaces With" description-key="This is the character to replace the spaces with in the OptionSet values. (ex: OptionSet Value: 'OptionSet Value' Space Replace: '_' =&gt; The File Name that this control will look for is 'OptionSet_Value'. Defaults to '' is no value is given." of-type="SingleLine.Text" usage="input" required="false" />
-    <property name="imageHeight" display-name-key="Image Height" description-key="This value is the integer height of the image. This will resize the images to match the given value. By default this control will not change the height of the image." of-type="Whole.None" usage="input" required="false" />
-    <property name="imageWidth" display-name-key="Image Width" description-key="This value is the integer width of the image. This will resize the imagse to match the given value. By default this control will not change the height of the image." of-type="Whole.None" usage="input" required="false" />
+    <property name="errorImage" display-name-key="Use Custom Error Image" description-key="This is the name of a custom error image to use for the default '---Select---' value of the OptionSet. If no image is specified the default included image will be used. If the value 'None' is entered, no image will be shown. (ex: 'cmp_/TestGlobalOptionSet/Images/noimage.png')" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="numericValue" display-name-key="Use OptionSet Numeric Value" description-key="This value changes what OptionSet value to generate the image name from. If no value is specified this control will use the textual value of the OptionSet. (ex: 'Value 1') Entering any value will pull the numeric value from the OptionSet. (ex: '123465000')" of-type="SingleLine.Text" usage="input" required="false" />
+    <property name="imageHeight" display-name-key="Image Height (px)" description-key="This value is the integer height of the image. This will resize the images to match the given value. By default this control will not change the height of the image." of-type="Whole.None" usage="input" required="false" />
+    <property name="imageWidth" display-name-key="Image Width (px)" description-key="This value is the integer width of the image. This will resize the images to match the given value. By default this control will not change the height of the image." of-type="Whole.None" usage="input" required="false" />
     <type-group name="optionset">
       <type>OptionSet</type>
     </type-group>
@@ -24,6 +26,7 @@
     -->
     <resources>
       <code path="index.ts" order="1" />
+      <img path="img/errorimage.svg" />
       <!-- UNCOMMENT TO ADD MORE RESOURCES
       <css path="css/ImageOptionField.css" order="1" />
       <resx path="strings/ImageOptionField.1033.resx" version="1.0.0" />

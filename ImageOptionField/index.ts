@@ -7,9 +7,11 @@ interface PCFImageControlSettings {
     filePath: string | null;
     fileType: string | null;
 
+    useNumericValue: string | null;
     spaceReplace: string | null;
     imageHeight: string | null;
     imageWidth: string | null;
+    placeholderImage: string | null;
 }
 
 
@@ -30,12 +32,16 @@ export class ImageOptionField implements ComponentFramework.StandardControl<IInp
 
 
     private fieldValue: string;
+    private fieldValueFormatted: string;
     private filePath: string;
     private fileType: string | null;
 
     private spaceReplace: string;
     private imageHeight: number;
     private imageWidth: number;
+
+    private errorImage: string;
+    private numericValue: string;
 
 	constructor()
 	{
@@ -57,7 +63,6 @@ export class ImageOptionField implements ComponentFramework.StandardControl<IInp
         this.notifyOutputChanged = notifyOutputChanged;
 
         this.clientUrl = (<any>context).page.getClientUrl();
-        //this.clientUrl = 'https://i.imgur.com/';
 
         this.imageContainer = document.createElement("div");
         this.imageContainer.classList.add("imageOptionField");
@@ -65,9 +70,7 @@ export class ImageOptionField implements ComponentFramework.StandardControl<IInp
         this.image = document.createElement("img");
         this.image.classList.add("optionImage");
 
-
         //this.image.src = this.createPath(this.settings);
-        //this.image.src = 'http://511bingo.site/images/511bingologo.png';
 
         this.generateImage(context);
 
@@ -82,7 +85,9 @@ export class ImageOptionField implements ComponentFramework.StandardControl<IInp
     }
 
     private validateInputs(context: ComponentFramework.Context<IInputs>) {
-        this.fieldValue = context.parameters.fieldValue.formatted || '';
+
+        this.checkIfFormatedFieldValue(context);
+
         this.filePath = context.parameters.filePath.raw || '';
         this.fileType = this.supportedFileTypes.indexOf(context.parameters.filePath.raw!) > -1 ?
             (context.parameters.fileType === undefined ? "png" : context.parameters.filePath.raw)
@@ -91,28 +96,63 @@ export class ImageOptionField implements ComponentFramework.StandardControl<IInp
         this.spaceReplace = context.parameters.spaceReplace.raw || '';
         this.imageHeight = context.parameters.imageHeight.raw || -1;
         this.imageWidth = context.parameters.imageWidth.raw || -1;
+
+        this.errorImage = context.parameters.errorImage.raw || '';
     }
 
     private generateImage(context: ComponentFramework.Context<IInputs>) {
 
         this.validateInputs(context);
 
-        this.image = this.createPath(this.image, this.filePath!, this.fieldValue!, this.fileType!, this.spaceReplace);
+        this.image.hidden = false;
+
+        this.image = this.createPath(this.image, this.filePath!, this.fieldValue!, this.fileType!, this.spaceReplace, this.errorImage);
         this.image = this.assignImageDimensions(this.image, this.imageHeight, this.imageWidth);
     }
 
-    private createPath(image: HTMLImageElement, filePath: string, fieldValue: string, fileType: string, spaceReplace: string): HTMLImageElement {
+    private createPath(image: HTMLImageElement, filePath: string, fieldValue: string, fileType: string, spaceReplace: string, errorImage: string): HTMLImageElement {
         if (!filePath) {
+            image.hidden = true;
             return image;
+        }
+
+        if (!fieldValue) {
+            if (!errorImage) {
+                this.context.resources.getResource('img/errorimage.svg', (data) => {
+
+                    image.src = `data:image/svg+xml;base64,${data}`;
+                    image.alt = 'Select an Option';
+
+                }, () => {
+                    console.log('Image not found.');
+                    image.src = '';
+                    image.hidden = true;
+                });
+
+                return image;
+            }
+            else if (errorImage.toLocaleLowerCase() == 'none') {
+                image.src = '';
+                image.hidden = true;
+                return image;
+            }
+            else {
+                image.src = this.clientUrl + '//WebResources/' + errorImage;
+                return image;
+            }
         }
 
         if (!spaceReplace) {
             let fileName = fieldValue.replace(/\s+/g, '');
-            image.src = this.clientUrl + filePath + fileName + "." + fileType;
+            fileName = fieldValue.replace(/[^a-zA-Z0-9_\-]*/g, '');
+            image.src = this.clientUrl + '//WebResources/' + filePath + fileName + "." + fileType;
+            image.alt = this.fieldValueFormatted;
         }
         else {
-            let fileName = fieldValue.replace(/\s+/g, spaceReplace);
-            image.src = this.clientUrl + filePath + fileName + "." + fileType;
+            let fileName = fieldValue.replace(/[^a-zA-Z0-9_\-]*/g, '');
+            fileName = fieldValue.replace(/\s+/g, spaceReplace);
+            image.src = this.clientUrl + '//WebResources/' + filePath + fileName + "." + fileType;
+            image.alt = this.fieldValueFormatted;
         }
 
         return image;
@@ -150,6 +190,21 @@ export class ImageOptionField implements ComponentFramework.StandardControl<IInp
 
         return image;
 
+    }
+
+    //sets the field value to either the formatted (string value) or the raw (numeric value) of the OptionSet
+    private checkIfFormatedFieldValue(context: ComponentFramework.Context<IInputs>) {
+
+        this.numericValue = context.parameters.numericValue.raw || '';
+
+        if (this.numericValue == '' || !this.numericValue) {
+            this.fieldValue = context.parameters.fieldValue.formatted || '';
+        }
+        else {
+            this.fieldValue = (context.parameters.fieldValue.raw!).toString() || '';
+        }
+
+        this.fieldValueFormatted = context.parameters.fieldValue.formatted || '';
     }
 
 	/**
